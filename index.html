@@ -1,92 +1,227 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Shooter</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+    <title>Advanced Physics Sandbox</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
+        body { 
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .tool-btn {
+            margin: 5px;
+            padding: 5px;
+            cursor: pointer;
+        }
+        #health-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <div id="score">Score: 0</div>
+    <div id="ui">
+        <button class="tool-btn" data-tool="human">Spawn Human</button>
+        <button class="tool-btn" data-tool="pistol">Pistol</button>
+        <button class="tool-btn" data-tool="grenade">Grenade</button>
+        <button class="tool-btn" data-tool="c4">C4</button>
+        <button class="tool-btn" data-tool="knife">Knife</button>
+        <button class="tool-btn" data-tool="firecracker">Firecracker</button>
+        <button id="detonate">Detonate C4</button>
+        <button id="clear">Clear</button>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+const { Engine, Render, Bodies, Composite, Mouse, MouseConstraint, Events, Query, Vector } = Matter;
+
+// Инициализация
+const engine = Engine.create();
+const render = Render.create({
+    element: document.body,
+    canvas: document.getElementById('canvas'),
+    engine: engine,
+    options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: '#222'
+    }
+});
+
+// Константы
+const TOOLS = {
+    pistol: { color: '#666', size: 5, force: 15 },
+    grenade: { color: '#0f0', size: 12, timer: 3000 },
+    c4: { color: '#f00', size: 15 },
+    knife: { color: '#silver', size: 20, damage: 50 },
+    firecracker: { color: '#ff0', size: 8, power: 0.3 }
+};
+
+let selectedTool = null;
+let humans = [];
+let c4List = [];
+
+// Настройка мира
+Composite.add(engine.world, [
+    Bodies.rectangle(400, 610, 810, 60, { isStatic: true }),
+    Bodies.rectangle(10, 300, 20, 600, { isStatic: true }),
+    Bodies.rectangle(790, 300, 20, 600, { isStatic: true })
+]);
+
+// Взаимодействие с мышью
+const mouse = Mouse.create(render.canvas);
+const mouseConstraint = MouseConstraint.create(engine, { mouse });
+Composite.add(engine.world, mouseConstraint);
+
+// Обработчики событий
+document.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedTool = btn.dataset.tool;
+    });
+});
+
+document.getElementById('detonate').addEventListener('click', detonateC4);
+document.getElementById('clear').addEventListener('click', clearScene);
+
+render.canvas.addEventListener('mousedown', event => {
+    if (event.button === 0) handleLeftClick();
+    if (event.button === 2) handleRightClick(event);
+});
+
+render.canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// Функции оружия
+function createBullet(position, velocity) {
+    const bullet = Bodies.circle(position.x, position.y, TOOLS.pistol.size, {
+        render: { fillStyle: TOOLS.pistol.color },
+        label: 'bullet'
+    });
+    Composite.add(engine.world, bullet);
+    Matter.Body.setVelocity(bullet, velocity);
+}
+
+function createExplosion(position, power = 1) {
+    const explosionArea = Bodies.circle(position.x, position.y, power * 50, {
+        isStatic: true,
+        isSensor: true,
+        render: { visible: false }
+    });
+    
+    Composite.add(engine.world, explosionArea);
+    
+    const affected = Query.region(engine.world.bodies, explosionArea.bounds);
+    affected.forEach(body => {
+        if (body.isStatic || body.label === 'human') return;
+        const force = Vector.mult(Vector.normalise(Vector.sub(body.position, position)), power * 20);
+        Matter.Body.applyForce(body, body.position, force);
+    });
+    
+    Composite.remove(engine.world, explosionArea);
+}
+
+// Система здоровья
+function updateHealth(human, damage) {
+    human.health -= damage;
+    if (human.health <= 0) {
+        Composite.remove(engine.world, human);
+        humans = humans.filter(h => h !== human);
+    }
+}
+
+// Обработчики кликов
+function handleLeftClick() {
+    const position = mouse.position;
+    
+    switch(selectedTool) {
+        case 'pistol':
+            const velocity = Vector.mult(Vector.normalise(Vector.sub(position, mouse.mousedownPosition)), TOOLS.pistol.force);
+            createBullet(position, velocity);
+            break;
+            
+        case 'grenade':
+            const grenade = Bodies.circle(position.x, position.y, TOOLS.grenade.size, {
+                render: { fillStyle: TOOLS.grenade.color },
+                label: 'grenade'
+            });
+            Composite.add(engine.world, grenade);
+            setTimeout(() => createExplosion(grenade.position, 1.5), TOOLS.grenade.timer);
+            break;
+            
+        case 'c4':
+            const c4 = Bodies.circle(position.x, position.y, TOOLS.c4.size, {
+                render: { fillStyle: TOOLS.c4.color },
+                label: 'c4'
+            });
+            c4List.push(c4);
+            Composite.add(engine.world, c4);
+            break;
+            
+        case 'knife':
+            const knife = Bodies.rectangle(position.x, position.y, 30, 5, {
+                render: { fillStyle: TOOLS.knife.color },
+                label: 'knife',
+                force: Vector.mult(Vector.normalise(Vector.sub(position, mouse.mousedownPosition)), 25)
+            });
+            Composite.add(engine.world, knife);
+            break;
+    }
+}
+
+function handleRightClick(event) {
+    if (selectedTool === 'human') {
+        const human = Bodies.rectangle(mouse.position.x, mouse.position.y, 40, 80, {
+            render: { fillStyle: '#8e44ad' },
+            label: 'human',
+            health: 100
+        });
+        humans.push(human);
+        Composite.add(engine.world, human);
+    }
+}
+
+function detonateC4() {
+    c4List.forEach(c4 => createExplosion(c4.position, 2));
+    c4List = [];
+}
+
+function clearScene() {
+    Composite.clear(engine.world);
+    humans = [];
+    c4List = [];
+}
+
+// Коллизии
+Events.on(engine, 'collisionStart', event => {
+    event.pairs.forEach(pair => {
+        const { bodyA, bodyB } = pair;
         
-        const controls = new THREE.PointerLockControls(camera, document.body);
-        document.addEventListener("click", () => controls.lock());
-        scene.add(controls.getObject());
-        
-        const floorGeometry = new THREE.PlaneGeometry(50, 50);
-        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = Math.PI / 2;
-        scene.add(floor);
-        
-        let score = 0;
-        const scoreElement = document.getElementById("score");
-        
-        class Enemy {
-            constructor() {
-                this.geometry = new THREE.BoxGeometry(1, 2, 1);
-                this.material = new THREE.MeshBasicMaterial({ color: "red" });
-                this.mesh = new THREE.Mesh(this.geometry, this.material);
-                this.mesh.position.set(Math.random() * 20 - 10, 1, Math.random() * -20);
-                scene.add(this.mesh);
-            }
-            move() {
-                this.mesh.position.z += 0.02;
-            }
+        if ((bodyA.label === 'knife' && bodyB.label === 'human') || 
+            (bodyB.label === 'knife' && bodyA.label === 'human')) {
+            updateHealth(bodyA.label === 'human' ? bodyA : bodyB, TOOLS.knife.damage);
         }
-        
-        const enemies = [];
-        function spawnEnemy() {
-            enemies.push(new Enemy());
-        }
-        setInterval(spawnEnemy, 2000);
-        
-        const player = { speed: 0.1, velocity: new THREE.Vector3() };
-        const keys = {};
-        document.addEventListener("keydown", (e) => keys[e.code] = true);
-        document.addEventListener("keyup", (e) => delete keys[e.code]);
-        
-        function movePlayer() {
-            if (keys["KeyW"]) player.velocity.z = -player.speed;
-            if (keys["KeyS"]) player.velocity.z = player.speed;
-            if (keys["KeyA"]) player.velocity.x = -player.speed;
-            if (keys["KeyD"]) player.velocity.x = player.speed;
-            controls.getObject().position.add(player.velocity);
-            player.velocity.set(0, 0, 0);
-        }
-        
-        document.addEventListener("click", shoot);
-        function shoot() {
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObjects(enemies.map(e => e.mesh));
-            if (intersects.length > 0) {
-                scene.remove(intersects[0].object);
-                enemies.splice(enemies.findIndex(e => e.mesh === intersects[0].object), 1);
-                score++;
-                scoreElement.textContent = "Score: " + score;
-            }
-        }
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            movePlayer();
-            enemies.forEach(enemy => enemy.move());
-            renderer.render(scene, camera);
-        }
-        animate();
+    });
+});
+
+// Запуск
+Engine.run(engine);
+Render.run(render);
+
+// Респонсив
+window.addEventListener('resize', () => {
+    render.canvas.width = window.innerWidth;
+    render.canvas.height = window.innerHeight;
+});
     </script>
 </body>
 </html>
