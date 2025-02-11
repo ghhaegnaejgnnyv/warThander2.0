@@ -3,131 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D War Thunder</title>
+    <title>3D Shooter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
     <style>
-        canvas {
-            background-color: #87CEEB;
-            display: block;
-            margin: auto;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 800;
-        canvas.height = 600;
-
-        class Tank {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.width = 40;
-                this.height = 20;
-                this.color = color;
-                this.speed = 3;
-            }
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-            move(dir) {
-                if (dir === "left" && this.x > 0) this.x -= this.speed;
-                if (dir === "right" && this.x + this.width < canvas.width) this.x += this.speed;
-                if (dir === "up" && this.y > 0) this.y -= this.speed;
-                if (dir === "down" && this.y + this.height < canvas.height) this.y += this.speed;
-            }
-        }
-
-        class Bullet {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.width = 10;
-                this.height = 5;
-                this.speed = 5;
-            }
-            draw() {
-                ctx.fillStyle = "black";
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-            update() {
-                this.x += this.speed;
-            }
-        }
-
-        class Enemy {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.width = 40;
-                this.height = 20;
-                this.color = "red";
-                this.speed = 2;
-            }
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-            update() {
-                this.x -= this.speed;
-            }
-        }
-
-        const player = new Tank(100, 280, "green");
-        const bullets = [];
-        const enemies = [];
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        const controls = new THREE.PointerLockControls(camera, document.body);
+        document.addEventListener("click", () => controls.lock());
+        scene.add(controls.getObject());
+        
+        const floorGeometry = new THREE.PlaneGeometry(50, 50);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = Math.PI / 2;
+        scene.add(floor);
+        
+        const player = { speed: 0.1, velocity: new THREE.Vector3() };
         const keys = {};
-        let score = 0;
-
-        window.addEventListener("keydown", (e) => keys[e.key] = true);
-        window.addEventListener("keyup", (e) => delete keys[e.key]);
-        window.addEventListener("keydown", (e) => {
-            if (e.key === " ") bullets.push(new Bullet(player.x + player.width, player.y + player.height / 2));
-        });
-
-        function spawnEnemy() {
-            const enemy = new Enemy(canvas.width, Math.random() * (canvas.height - 20));
-            enemies.push(enemy);
+        document.addEventListener("keydown", (e) => keys[e.code] = true);
+        document.addEventListener("keyup", (e) => keys[e.code] = false);
+        
+        function movePlayer() {
+            if (keys["KeyW"]) player.velocity.z = -player.speed;
+            if (keys["KeyS"]) player.velocity.z = player.speed;
+            if (keys["KeyA"]) player.velocity.x = -player.speed;
+            if (keys["KeyD"]) player.velocity.x = player.speed;
+            
+            controls.getObject().position.add(player.velocity);
+            player.velocity.set(0, 0, 0);
         }
-        setInterval(spawnEnemy, 2000);
-
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            player.draw();
-            if (keys["ArrowLeft"]) player.move("left");
-            if (keys["ArrowRight"]) player.move("right");
-            if (keys["ArrowUp"]) player.move("up");
-            if (keys["ArrowDown"]) player.move("down");
-            
-            bullets.forEach((bullet, index) => {
-                bullet.update();
-                bullet.draw();
-                if (bullet.x > canvas.width) bullets.splice(index, 1);
-            });
-            
-            enemies.forEach((enemy, eIndex) => {
-                enemy.update();
-                enemy.draw();
-                
-                bullets.forEach((bullet, bIndex) => {
-                    if (bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
-                        bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y) {
-                        enemies.splice(eIndex, 1);
-                        bullets.splice(bIndex, 1);
-                        score++;
-                    }
-                });
-            });
-            
-            ctx.fillStyle = "black";
-            ctx.font = "20px Arial";
-            ctx.fillText("Score: " + score, 10, 20);
-            requestAnimationFrame(gameLoop);
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
         }
-        gameLoop();
+        animate();
     </script>
 </body>
 </html>
