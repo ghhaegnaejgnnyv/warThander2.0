@@ -21,6 +21,22 @@
             background-size: cover;
         }
 
+        .desktop-icon {
+            position: absolute;
+            width: 80px;
+            text-align: center;
+            padding: 5px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            cursor: pointer;
+        }
+
+        .desktop-icon img {
+            width: 48px;
+            display: block;
+            margin: auto;
+        }
+
         .taskbar {
             position: fixed;
             bottom: 0;
@@ -50,18 +66,6 @@
             width: 16px;
         }
 
-        .start-menu {
-            display: none;
-            position: absolute;
-            bottom: 50px;
-            left: 10px;
-            width: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
         .quick-access {
             display: flex;
             gap: 5px;
@@ -73,23 +77,6 @@
             padding: 5px 10px;
             border-radius: 3px;
             cursor: pointer;
-        }
-
-        .shutdown {
-            margin-top: 10px;
-            padding: 5px;
-            background: red;
-            color: white;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .window {
-            position: absolute;
-            background: #ece9d8;
-            border: 1px solid #003c74;
-            border-radius: 5px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
         }
 
         .clock {
@@ -112,7 +99,20 @@
     </style>
 </head>
 <body>
-    <div class="desktop"></div>
+    <div class="desktop">
+        <div class="desktop-icon" style="left: 20px; top: 20px;" onclick="openWindow('computer')">
+            <img src="computer.png" alt="Computer">
+            <div contenteditable="false" class="icon-label">Компьютер</div>
+        </div>
+        <div class="desktop-icon" style="left: 120px; top: 20px;" onclick="openWindow('calculator')">
+            <img src="calculator.png" alt="Calculator">
+            <div class="icon-label">Калькулятор</div>
+        </div>
+        <div class="desktop-icon" style="left: 220px; top: 20px;" onclick="openWindow('browser')">
+            <img src="browser.png" alt="Browser">
+            <div class="icon-label">Браузер</div>
+        </div>
+    </div>
 
     <div class="taskbar">
         <button class="start-button">
@@ -123,10 +123,6 @@
         <div class="clock" id="clock"></div>
     </div>
     
-    <div class="start-menu">
-        <div class="shutdown">Shutdown</div>
-    </div>
-    
     <div class="calendar" id="calendar"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -135,22 +131,20 @@
         $(function() {
             function updateClock() {
                 const now = new Date();
-                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', locale: 'ru-RU' };
-                $("#clock").text(now.toLocaleDateString('ru-RU', options));
+                const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
+                $("#clock").text(now.toLocaleDateString('ru-RU', options) + ' ' + now.toLocaleTimeString('ru-RU'));
             }
             setInterval(updateClock, 1000);
             updateClock();
             
             $(".clock").click(function() {
-                $("#calendar").toggle().text(new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+                $("#calendar").toggle().text(new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric', day: 'numeric', weekday: 'long' }));
             });
-            
-            $(".start-button").click(function() {
-                $(".start-menu").toggle();
-            });
-            
-            $(".shutdown").click(function() {
-                window.close();
+
+            $(".desktop-icon").on("click", function(event) {
+                if (event.altKey) {
+                    $(this).find(".icon-label").attr("contenteditable", "true").focus();
+                }
             });
         });
     </script>
