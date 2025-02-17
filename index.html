@@ -1,24 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D Shooter</title>
+    <title>Minecraft-like Game</title>
     <style>
-        body { margin: 0; }
+        body { margin: 0; overflow: hidden; }
         canvas { display: block; }
-        #hud {
+        #hotbar {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .hotbar-slot {
+            width: 40px;
+            height: 40px;
+            border: 2px solid white;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
             font-family: Arial;
-            font-size: 24px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 20px;
+        }
+        .hotbar-slot.active {
+            border-color: yellow;
         }
     </style>
 </head>
 <body>
-    <div id="hud">Health: <span id="health">100</span> | Score: <span id="score">0</span></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <div id="hotbar">
+        <div class="hotbar-slot" data-block="grass">1</div>
+        <div class="hotbar-slot" data-block="dirt">2</div>
+        <div class="hotbar-slot" data-block="stone">3</div>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>
