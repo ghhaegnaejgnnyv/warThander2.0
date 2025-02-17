@@ -1,41 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Minecraft-like Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows XP Emulator</title>
+    <script src="https://copy.sh/v86/build/v86.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-        #hotbar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-        }
-        .hotbar-slot {
-            width: 40px;
-            height: 40px;
-            border: 2px solid white;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-family: Arial;
-            font-size: 20px;
-        }
-        .hotbar-slot.active {
-            border-color: yellow;
-        }
+        body { text-align: center; font-family: Arial, sans-serif; }
+        #screen { width: 800px; height: 600px; border: 1px solid black; margin: auto; }
     </style>
 </head>
 <body>
-    <div id="hotbar">
-        <div class="hotbar-slot" data-block="grass">1</div>
-        <div class="hotbar-slot" data-block="dirt">2</div>
-        <div class="hotbar-slot" data-block="stone">3</div>
-    </div>
-    <script src="game.js"></script>
+    <h1>Windows XP Emulator</h1>
+    <canvas id="screen"></canvas>
+    <button onclick="startEmulator()">Запустить Windows XP</button>
+    
+    <script>
+        let emulator;
+        function startEmulator() {
+            if (emulator) return;
+            
+            emulator = new V86Starter({
+                wasm_path: "https://copy.sh/v86/build/v86.wasm",
+                memory_size: 512 * 1024 * 1024,
+                vga_memory_size: 8 * 1024 * 1024,
+                screen_container: document.getElementById("screen"),
+                bios: { url: "https://copy.sh/v86/bios/seabios.bin" },
+                vga_bios: { url: "https://copy.sh/v86/bios/vgabios.bin" },
+                cdrom: { url: "windowsxp.iso" },
+                autostart: true
+            });
+        }
+    </script>
 </body>
 </html>
