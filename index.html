@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web OS - Windows 7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <style>
+        /* Обновлённые стили */
         body {
             margin: 0;
             padding: 0;
@@ -21,130 +22,172 @@
             background-size: cover;
         }
 
-        .desktop-icon {
+        /* Стили для меню Start */
+        .start-menu {
             position: absolute;
-            width: 80px;
-            text-align: center;
-            padding: 5px;
-            color: white;
-            text-shadow: 1px 1px 2px black;
-            cursor: pointer;
-        }
-
-        .desktop-icon img {
-            width: 48px;
-            display: block;
-            margin: auto;
-        }
-
-        .taskbar {
-            position: fixed;
-            bottom: 0;
+            bottom: 40px;
             left: 0;
-            right: 0;
-            height: 40px;
-            background: linear-gradient(to bottom, #606060, #404040);
-            border-top: 1px solid #000;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-        }
-
-        .start-button {
-            background: linear-gradient(to bottom, #6caa3d, #45741f);
-            border: 1px solid #2d4a18;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 3px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .start-button img {
-            width: 16px;
-        }
-
-        .quick-access {
-            display: flex;
-            gap: 5px;
-            margin-left: 20px;
-        }
-
-        .quick-access div {
-            background: gray;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .clock {
-            margin-left: auto;
-            color: white;
-            font-size: 14px;
-            padding: 0 10px;
-            cursor: pointer;
-        }
-
-        .calendar {
+            width: 300px;
+            height: 400px;
+            background: linear-gradient(to bottom, #4a6a9b, #2a3f5f);
+            border: 1px solid #1a2f4f;
             display: none;
+            z-index: 1000;
+        }
+
+        /* Стили для календаря */
+        .calendar {
             position: absolute;
-            bottom: 50px;
-            right: 10px;
+            bottom: 40px;
+            right: 0;
+            width: 250px;
             background: white;
+            border: 1px solid #ccc;
             padding: 10px;
-            border: 1px solid black;
+            display: none;
+            z-index: 1000;
+        }
+
+        /* Остальные стили остаются с предыдущей версии, добавляем новые */
+        .window-control:hover {
+            background-color: rgba(255,255,255,0.3) !important;
         }
     </style>
 </head>
 <body>
     <div class="desktop">
-        <div class="desktop-icon" style="left: 20px; top: 20px;" onclick="openWindow('computer')">
-            <img src="computer.png" alt="Computer">
-            <div contenteditable="false" class="icon-label">Компьютер</div>
+        <div class="desktop-icon" style="left: 20px; top: 20px;">
+            <img src="computer.png" alt="Computer" width="48">
+            <div>Computer</div>
         </div>
-        <div class="desktop-icon" style="left: 120px; top: 20px;" onclick="openWindow('calculator')">
-            <img src="calculator.png" alt="Calculator">
-            <div class="icon-label">Калькулятор</div>
-        </div>
-        <div class="desktop-icon" style="left: 220px; top: 20px;" onclick="openWindow('browser')">
-            <img src="browser.png" alt="Browser">
-            <div class="icon-label">Браузер</div>
-        </div>
-    </div>
 
-    <div class="taskbar">
-        <button class="start-button">
-            <img src="windows-icon.png" alt="Start">
-            Start
-        </button>
-        <div class="quick-access"></div>
-        <div class="clock" id="clock"></div>
+        <div class="window" style="width: 400px; height: 300px; left: 100px; top: 100px;">
+            <div class="window-header">
+                <span>My Computer</span>
+                <div class="window-controls">
+                    <button class="window-control minimize" style="background: #4caf50"></button>
+                    <button class="window-control maximize" style="background: #fdd835"></button>
+                    <button class="window-control close" style="background: #f44336"></button>
+                </div>
+            </div>
+            <div class="window-content">
+                <!-- Content here -->
+            </div>
+        </div>
+
+        <div class="taskbar">
+            <button class="start-button" id="startButton">
+                <img src="windows-icon.png" alt="Start" width="16">
+                Start
+            </button>
+            <div class="clock" id="clock"></div>
+        </div>
+
+        <!-- Новые элементы -->
+        <div class="start-menu" id="startMenu">
+            <div class="menu-section">
+                <div class="menu-item shutdown">Завершение работы</div>
+            </div>
+        </div>
+
+        <div class="calendar" id="calendar">
+            <div id="calendarContent"></div>
+        </div>
     </div>
-    
-    <div class="calendar" id="calendar"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
         $(function() {
+            // Инициализация перетаскивания окон
+            $(".window").draggable({
+                handle: ".window-header",
+                containment: "parent"
+            });
+
+            // Инициализация перетаскивания иконок
+            $(".desktop-icon").draggable({
+                containment: "parent",
+                stack: ".desktop-icon"
+            });
+
+            // Обновление времени
             function updateClock() {
                 const now = new Date();
-                const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
-                $("#clock").text(now.toLocaleDateString('ru-RU', options) + ' ' + now.toLocaleTimeString('ru-RU'));
+                $('#clock').text(now.toLocaleString());
             }
             setInterval(updateClock, 1000);
             updateClock();
-            
-            $(".clock").click(function() {
-                $("#calendar").toggle().text(new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric', day: 'numeric', weekday: 'long' }));
+
+            // Управление окнами
+            $('.window-control.close').click(function() {
+                $(this).closest('.window').hide();
             });
 
-            $(".desktop-icon").on("click", function(event) {
-                if (event.altKey) {
-                    $(this).find(".icon-label").attr("contenteditable", "true").focus();
+            $('.window-control.minimize').click(function() {
+                $(this).closest('.window').animate({
+                    top: '100vh'
+                }, 300);
+            });
+
+            $('.window-control.maximize').click(function() {
+                const window = $(this).closest('.window');
+                window.toggleClass('maximized');
+                if(window.hasClass('maximized')) {
+                    window.css({width: '100vw', height: 'calc(100vh - 40px)', top: 0, left: 0});
+                } else {
+                    window.css({width: '400px', height: '300px', top: '100px', left: '100px'});
                 }
+            });
+
+            // Календарь
+            $('#clock').click(function(e) {
+                e.stopPropagation();
+                const now = new Date();
+                const calendarHTML = `
+                    <div class="calendar-header">
+                        ${now.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <div class="calendar-dates">
+                        ${generateCalendar(now)}
+                    </div>
+                `;
+                $('#calendarContent').html(calendarHTML);
+                $('#calendar').toggle().css({
+                    bottom: '40px',
+                    right: '0'
+                });
+            });
+
+            function generateCalendar(date) {
+                // Генерация календаря
+                const daysInMonth = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+                let html = '';
+                for(let i = 1; i <= daysInMonth; i++) {
+                    html += `<div class="calendar-day ${i === date.getDate() ? 'today' : ''}">${i}</div>`;
+                }
+                return html;
+            }
+
+            // Меню Start
+            $('#startButton').click(function(e) {
+                e.stopPropagation();
+                $('#startMenu').toggle();
+            });
+
+            $('.shutdown').click(function() {
+                window.close();
+            });
+
+            // Закрытие меню при клике вне его
+            $(document).click(function() {
+                $('#startMenu').hide();
+                $('#calendar').hide();
+            });
+
+            // Предотвращение закрытия при клике внутри меню
+            $('#startMenu, #calendar').click(function(e) {
+                e.stopPropagation();
             });
         });
     </script>
