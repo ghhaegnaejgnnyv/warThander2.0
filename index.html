@@ -17,7 +17,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            background-image: url('win.png');
+            background: url('win.png') no-repeat center center fixed;
             background-size: cover;
         }
 
@@ -46,6 +46,27 @@
             gap: 5px;
         }
 
+        .start-menu {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            width: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .shutdown {
+            margin-top: 10px;
+            padding: 5px;
+            background: red;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+        }
+
         .window {
             position: absolute;
             background: #ece9d8;
@@ -65,16 +86,10 @@
             cursor: move;
         }
 
-        .window-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .window-control {
+        .window-controls button {
             width: 16px;
             height: 16px;
             border: none;
-            border-radius: 3px;
             cursor: pointer;
         }
 
@@ -92,16 +107,22 @@
             cursor: pointer;
         }
 
-        .desktop-icon:hover {
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-        }
-
         .clock {
             margin-left: auto;
             color: white;
             font-size: 14px;
             padding: 0 10px;
+            cursor: pointer;
+        }
+
+        .calendar {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -116,41 +137,67 @@
             <div class="window-header">
                 <span>My Computer</span>
                 <div class="window-controls">
-                    <button class="window-control" style="background: #6b6b6b"></button>
-                    <button class="window-control" style="background: #4caf50"></button>
-                    <button class="window-control" style="background: #f44336"></button>
+                    <button class="minimize">-</button>
+                    <button class="maximize">□</button>
+                    <button class="close">X</button>
                 </div>
             </div>
-            <div class="window-content">
-                <!-- Content here -->
-            </div>
+            <div class="window-content"></div>
         </div>
 
         <div class="taskbar">
-            <button class="start-button">
-                <img src="windows-icon.png" alt="Start" width="16">
-                Start
-            </button>
+            <button class="start-button">Start</button>
             <div class="clock" id="clock"></div>
         </div>
     </div>
+    
+    <div class="start-menu">
+        <div class="shutdown">Shutdown</div>
+    </div>
+    
+    <div class="calendar" id="calendar"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
         $(function() {
-            $(".window").draggable({
-                handle: ".window-header"
+            $(".window").draggable({ handle: ".window-header" });
+            $(".desktop-icon").draggable();
+            
+            $(".close").click(function() {
+                $(this).closest(".window").hide();
             });
-
+            $(".minimize").click(function() {
+                $(this).closest(".window").hide();
+            });
+            $(".maximize").click(function() {
+                let win = $(this).closest(".window");
+                win.toggleClass("maximized");
+                if (win.hasClass("maximized")) {
+                    win.css({ top: 0, left: 0, width: "100vw", height: "100vh" });
+                } else {
+                    win.css({ width: "400px", height: "300px", left: "100px", top: "100px" });
+                }
+            });
+            
             function updateClock() {
                 const now = new Date();
-                const timeString = now.toLocaleTimeString();
-                const dateString = now.toLocaleDateString();
-                $('#clock').text(`${dateString} ${timeString}`);
+                $("#clock").text(now.toLocaleString());
             }
             setInterval(updateClock, 1000);
             updateClock();
+            
+            $(".clock").click(function() {
+                $("#calendar").toggle().text(new Date().toDateString());
+            });
+            
+            $(".start-button").click(function() {
+                $(".start-menu").toggle();
+            });
+            
+            $(".shutdown").click(function() {
+                window.close();
+            });
         });
     </script>
 </body>
