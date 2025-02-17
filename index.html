@@ -1,194 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web OS - Windows 7</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <!-- Previous head content -->
     <style>
-        /* Обновлённые стили */
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: "Segoe UI", Arial, sans-serif;
-        }
-
-        .desktop {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background: url('win.png') no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        /* Стили для меню Start */
-        .start-menu {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
+        /* Новые стили для приложений */
+        .calculator {
             width: 300px;
             height: 400px;
-            background: linear-gradient(to bottom, #4a6a9b, #2a3f5f);
-            border: 1px solid #1a2f4f;
-            display: none;
-            z-index: 1000;
         }
-
-        /* Стили для календаря */
-        .calendar {
-            position: absolute;
-            bottom: 40px;
-            right: 0;
-            width: 250px;
-            background: white;
-            border: 1px solid #ccc;
+        
+        .calculator-display {
+            background: #f0f0f0;
             padding: 10px;
-            display: none;
-            z-index: 1000;
+            text-align: right;
+            font-size: 24px;
+            border: 1px solid #ccc;
+            margin: 5px;
         }
 
-        /* Остальные стили остаются с предыдущей версии, добавляем новые */
-        .window-control:hover {
-            background-color: rgba(255,255,255,0.3) !important;
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            padding: 5px;
+        }
+
+        .calculator-btn {
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #999;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .web-browser {
+            width: 800px;
+            height: 600px;
+        }
+
+        .browser-navbar {
+            display: flex;
+            padding: 5px;
+            background: #eee;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .browser-url {
+            flex-grow: 1;
+            margin: 0 5px;
+            padding: 3px;
+        }
+
+        .browser-content {
+            width: 100%;
+            height: calc(100% - 30px);
+            border: none;
+        }
+
+        .camera-app {
+            width: 640px;
+            height: 480px;
+        }
+
+        .camera-preview {
+            width: 100%;
+            height: 100%;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
         }
     </style>
 </head>
 <body>
     <div class="desktop">
-        <div class="desktop-icon" style="left: 20px; top: 20px;">
-            <img src="computer.png" alt="Computer" width="48">
-            <div>Computer</div>
+        <!-- Существующие элементы -->
+        
+        <!-- Новые иконки приложений -->
+        <div class="desktop-icon" data-app="calculator" style="left: 120px; top: 20px;">
+            <img src="calc-icon.png" alt="Calculator" width="48">
+            <div>Calculator</div>
         </div>
 
-        <div class="window" style="width: 400px; height: 300px; left: 100px; top: 100px;">
+        <div class="desktop-icon" data-app="browser" style="left: 220px; top: 20px;">
+            <img src="browser-icon.png" alt="Browser" width="48">
+            <div>Browser</div>
+        </div>
+
+        <div class="desktop-icon" data-app="camera" style="left: 320px; top: 20px;">
+            <img src="camera-icon.png" alt="Camera" width="48">
+            <div>Camera</div>
+        </div>
+
+        <!-- Шаблоны приложений -->
+        <div class="window calculator hidden" id="calculatorApp">
             <div class="window-header">
-                <span>My Computer</span>
+                <span>Calculator</span>
                 <div class="window-controls">
-                    <button class="window-control minimize" style="background: #4caf50"></button>
-                    <button class="window-control maximize" style="background: #fdd835"></button>
-                    <button class="window-control close" style="background: #f44336"></button>
+                    <button class="window-control minimize"></button>
+                    <button class="window-control maximize"></button>
+                    <button class="window-control close"></button>
                 </div>
             </div>
             <div class="window-content">
-                <!-- Content here -->
+                <div class="calculator-display">0</div>
+                <div class="calculator-buttons">
+                    <!-- Кнопки калькулятора -->
+                </div>
             </div>
         </div>
 
-        <div class="taskbar">
-            <button class="start-button" id="startButton">
-                <img src="windows-icon.png" alt="Start" width="16">
-                Start
-            </button>
-            <div class="clock" id="clock"></div>
-        </div>
-
-        <!-- Новые элементы -->
-        <div class="start-menu" id="startMenu">
-            <div class="menu-section">
-                <div class="menu-item shutdown">Завершение работы</div>
+        <div class="window web-browser hidden" id="browserApp">
+            <div class="window-header">
+                <span>Web Browser</span>
+                <div class="window-controls">
+                    <button class="window-control minimize"></button>
+                    <button class="window-control maximize"></button>
+                    <button class="window-control close"></button>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="browser-navbar">
+                    <button class="nav-btn back">←</button>
+                    <button class="nav-btn forward">→</button>
+                    <input type="text" class="browser-url" placeholder="Enter URL">
+                    <button class="nav-btn go">Go</button>
+                </div>
+                <iframe class="browser-content"></iframe>
             </div>
         </div>
 
-        <div class="calendar" id="calendar">
-            <div id="calendarContent"></div>
+        <div class="window camera-app hidden" id="cameraApp">
+            <div class="window-header">
+                <span>Camera</span>
+                <div class="window-controls">
+                    <button class="window-control minimize"></button>
+                    <button class="window-control maximize"></button>
+                    <button class="window-control close"></button>
+                </div>
+            </div>
+            <div class="window-content">
+                <video class="camera-preview"></video>
+                <div class="camera-controls">
+                    <button class="capture-btn">Capture</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
+        // Обновлённый JavaScript
         $(function() {
-            // Инициализация перетаскивания окон
-            $(".window").draggable({
-                handle: ".window-header",
-                containment: "parent"
-            });
-
-            // Инициализация перетаскивания иконок
-            $(".desktop-icon").draggable({
-                containment: "parent",
-                stack: ".desktop-icon"
-            });
-
-            // Обновление времени
-            function updateClock() {
-                const now = new Date();
-                $('#clock').text(now.toLocaleString());
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
-
-            // Управление окнами
-            $('.window-control.close').click(function() {
-                $(this).closest('.window').hide();
-            });
-
-            $('.window-control.minimize').click(function() {
-                $(this).closest('.window').animate({
-                    top: '100vh'
-                }, 300);
-            });
-
-            $('.window-control.maximize').click(function() {
-                const window = $(this).closest('.window');
-                window.toggleClass('maximized');
-                if(window.hasClass('maximized')) {
-                    window.css({width: '100vw', height: 'calc(100vh - 40px)', top: 0, left: 0});
-                } else {
-                    window.css({width: '400px', height: '300px', top: '100px', left: '100px'});
-                }
-            });
-
-            // Календарь
-            $('#clock').click(function(e) {
-                e.stopPropagation();
-                const now = new Date();
-                const calendarHTML = `
-                    <div class="calendar-header">
-                        ${now.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                    </div>
-                    <div class="calendar-dates">
-                        ${generateCalendar(now)}
-                    </div>
-                `;
-                $('#calendarContent').html(calendarHTML);
-                $('#calendar').toggle().css({
-                    bottom: '40px',
-                    right: '0'
+            // Запуск приложений
+            $('.desktop-icon').dblclick(function() {
+                const app = $(this).data('app');
+                const appWindow = $(`#${app}App`).clone().removeClass('hidden');
+                appWindow.appendTo('.desktop').draggable({
+                    handle: ".window-header",
+                    containment: "parent"
                 });
+                initApp(appWindow, app);
             });
 
-            function generateCalendar(date) {
-                // Генерация календаря
-                const daysInMonth = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
-                let html = '';
-                for(let i = 1; i <= daysInMonth; i++) {
-                    html += `<div class="calendar-day ${i === date.getDate() ? 'today' : ''}">${i}</div>`;
+            function initApp(window, appType) {
+                // Общие обработчики окон
+                window.find('.close').click(() => window.remove());
+                window.find('.minimize').click(() => window.hide());
+                window.find('.maximize').click(toggleMaximize);
+
+                // Инициализация конкретных приложений
+                switch(appType) {
+                    case 'calculator':
+                        initCalculator(window);
+                        break;
+                    case 'browser':
+                        initBrowser(window);
+                        break;
+                    case 'camera':
+                        initCamera(window);
+                        break;
                 }
-                return html;
             }
 
-            // Меню Start
-            $('#startButton').click(function(e) {
-                e.stopPropagation();
-                $('#startMenu').toggle();
-            });
+            // Калькулятор
+            function initCalculator(calcWindow) {
+                const display = calcWindow.find('.calculator-display');
+                let currentValue = '0';
+                
+                calcWindow.find('.calculator-buttons').html(`
+                    <button class="calculator-btn" data-action="clear">C</button>
+                    <button class="calculator-btn" data-action="sign">±</button>
+                    <button class="calculator-btn" data-action="percent">%</button>
+                    <button class="calculator-btn" data-action="divide">/</button>
+                    <button class="calculator-btn" data-value="7">7</button>
+                    <button class="calculator-btn" data-value="8">8</button>
+                    <button class="calculator-btn" data-value="9">9</button>
+                    <button class="calculator-btn" data-action="multiply">×</button>
+                    <button class="calculator-btn" data-value="4">4</button>
+                    <button class="calculator-btn" data-value="5">5</button>
+                    <button class="calculator-btn" data-value="6">6</button>
+                    <button class="calculator-btn" data-action="subtract">-</button>
+                    <button class="calculator-btn" data-value="1">1</button>
+                    <button class="calculator-btn" data-value="2">2</button>
+                    <button class="calculator-btn" data-value="3">3</button>
+                    <button class="calculator-btn" data-action="add">+</button>
+                    <button class="calculator-btn" data-value="0" style="grid-column: span 2">0</button>
+                    <button class="calculator-btn" data-value=".">.</button>
+                    <button class="calculator-btn" data-action="equals">=</button>
+                `);
 
-            $('.shutdown').click(function() {
-                window.close();
-            });
+                calcWindow.on('click', '.calculator-btn', function() {
+                    const action = $(this).data('action');
+                    const value = $(this).data('value');
+                    
+                    if(value) handleNumber(value);
+                    if(action) handleAction(action);
+                    
+                    display.text(currentValue);
+                });
 
-            // Закрытие меню при клике вне его
-            $(document).click(function() {
-                $('#startMenu').hide();
-                $('#calendar').hide();
-            });
+                function handleNumber(num) {
+                    if(currentValue === '0') currentValue = num;
+                    else currentValue += num;
+                }
 
-            // Предотвращение закрытия при клике внутри меню
-            $('#startMenu, #calendar').click(function(e) {
-                e.stopPropagation();
-            });
+                function handleAction(action) {
+                    switch(action) {
+                        case 'clear':
+                            currentValue = '0';
+                            break;
+                        case 'equals':
+                            try {
+                                currentValue = eval(currentValue).toString();
+                            } catch {
+                                currentValue = 'Error';
+                            }
+                            break;
+                        // Добавьте другие операции
+                    }
+                }
+            }
+
+            // Браузер
+            function initBrowser(browserWindow) {
+                const iframe = browserWindow.find('iframe');
+                const urlInput = browserWindow.find('.browser-url');
+                
+                browserWindow.find('.go').click(() => {
+                    let url = urlInput.val();
+                    if(!url.startsWith('http')) url = 'https://' + url;
+                    iframe.attr('src', url);
+                });
+
+                browserWindow.find('.back').click(() => iframe[0].contentWindow.history.back());
+                browserWindow.find('.forward').click(() => iframe[0].contentWindow.history.forward());
+            }
+
+            // Камера
+            function initCamera(cameraWindow) {
+                const video = cameraWindow.find('video')[0];
+                const constraints = { video: true };
+
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(err => {
+                        cameraWindow.find('.window-content').html('Camera access denied!');
+                    });
+
+                cameraWindow.find('.capture-btn').click(() => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    
+                    const img = new Image();
+                    img.src = canvas.toDataURL('image/png');
+                    img.style.maxWidth = '100%';
+                    
+                    const newWindow = $(`
+                        <div class="window" style="width: 400px; height: 300px;">
+                            <div class="window-header">Photo</div>
+                            <div class="window-content"></div>
+                        </div>
+                    `).appendTo('.desktop').draggable({
+                        handle: ".window-header",
+                        containment: "parent"
+                    });
+                    
+                    newWindow.find('.window-content').append(img);
+                });
+            }
         });
     </script>
 </body>
