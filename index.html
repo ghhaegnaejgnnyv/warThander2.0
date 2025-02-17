@@ -1,302 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <!-- Previous head content -->
-    <style>
-        /* Новые стили для приложений */
-        .calculator {
-            width: 300px;
-            height: 400px;
-        }
-        
-        .calculator-display {
-            background: #f0f0f0;
-            padding: 10px;
-            text-align: right;
-            font-size: 24px;
-            border: 1px solid #ccc;
-            margin: 5px;
-        }
-
-        .calculator-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-            padding: 5px;
-        }
-
-        .calculator-btn {
-            padding: 15px;
-            font-size: 18px;
-            border: 1px solid #999;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        .web-browser {
-            width: 800px;
-            height: 600px;
-        }
-
-        .browser-navbar {
-            display: flex;
-            padding: 5px;
-            background: #eee;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .browser-url {
-            flex-grow: 1;
-            margin: 0 5px;
-            padding: 3px;
-        }
-
-        .browser-content {
-            width: 100%;
-            height: calc(100% - 30px);
-            border: none;
-        }
-
-        .camera-app {
-            width: 640px;
-            height: 480px;
-        }
-
-        .camera-preview {
-            width: 100%;
-            height: 100%;
-        }
-
-        .camera-controls {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 10 Web Clone</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="desktop">
-        <!-- Существующие элементы -->
-        
-        <!-- Новые иконки приложений -->
-        <div class="desktop-icon" data-app="calculator" style="left: 120px; top: 20px;">
-            <img src="calc-icon.png" alt="Calculator" width="48">
-            <div>Calculator</div>
+    <div class="desktop" style="background-image: url('win.png');">
+        <!-- Иконки на рабочем столе -->
+        <div class="icon" style="top: 20px; left: 20px;">
+            <img src="computer.png" alt="Мой компьютер">
+            <span>Мой компьютер</span>
         </div>
 
-        <div class="desktop-icon" data-app="browser" style="left: 220px; top: 20px;">
-            <img src="browser-icon.png" alt="Browser" width="48">
-            <div>Browser</div>
-        </div>
-
-        <div class="desktop-icon" data-app="camera" style="left: 320px; top: 20px;">
-            <img src="camera-icon.png" alt="Camera" width="48">
-            <div>Camera</div>
-        </div>
-
-        <!-- Шаблоны приложений -->
-        <div class="window calculator hidden" id="calculatorApp">
-            <div class="window-header">
-                <span>Calculator</span>
-                <div class="window-controls">
-                    <button class="window-control minimize"></button>
-                    <button class="window-control maximize"></button>
-                    <button class="window-control close"></button>
+        <!-- Панель задач -->
+        <div class="taskbar">
+            <div class="start-menu">
+                <button id="start-button">
+                    <img src="windows-icon.png" alt="Пуск">
+                </button>
+                <div id="start-menu-content" class="start-menu-content">
+                    <ul>
+                        <li>Приложение 1</li>
+                        <li>Приложение 2</li>
+                        <li>Приложение 3</li>
+                    </ul>
+                    <button id="shutdown-button">Выключение</button>
                 </div>
             </div>
-            <div class="window-content">
-                <div class="calculator-display">0</div>
-                <div class="calculator-buttons">
-                    <!-- Кнопки калькулятора -->
-                </div>
-            </div>
-        </div>
-
-        <div class="window web-browser hidden" id="browserApp">
-            <div class="window-header">
-                <span>Web Browser</span>
-                <div class="window-controls">
-                    <button class="window-control minimize"></button>
-                    <button class="window-control maximize"></button>
-                    <button class="window-control close"></button>
-                </div>
-            </div>
-            <div class="window-content">
-                <div class="browser-navbar">
-                    <button class="nav-btn back">←</button>
-                    <button class="nav-btn forward">→</button>
-                    <input type="text" class="browser-url" placeholder="Enter URL">
-                    <button class="nav-btn go">Go</button>
-                </div>
-                <iframe class="browser-content"></iframe>
-            </div>
-        </div>
-
-        <div class="window camera-app hidden" id="cameraApp">
-            <div class="window-header">
-                <span>Camera</span>
-                <div class="window-controls">
-                    <button class="window-control minimize"></button>
-                    <button class="window-control maximize"></button>
-                    <button class="window-control close"></button>
-                </div>
-            </div>
-            <div class="window-content">
-                <video class="camera-preview"></video>
-                <div class="camera-controls">
-                    <button class="capture-btn">Capture</button>
+            <div class="quick-access">
+                <span id="time">12:00 PM</span>
+                <span id="language">RU</span>
+                <div class="volume-control">
+                    <span>🔊</span>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50">
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Обновлённый JavaScript
-        $(function() {
-            // Запуск приложений
-            $('.desktop-icon').dblclick(function() {
-                const app = $(this).data('app');
-                const appWindow = $(`#${app}App`).clone().removeClass('hidden');
-                appWindow.appendTo('.desktop').draggable({
-                    handle: ".window-header",
-                    containment: "parent"
-                });
-                initApp(appWindow, app);
-            });
-
-            function initApp(window, appType) {
-                // Общие обработчики окон
-                window.find('.close').click(() => window.remove());
-                window.find('.minimize').click(() => window.hide());
-                window.find('.maximize').click(toggleMaximize);
-
-                // Инициализация конкретных приложений
-                switch(appType) {
-                    case 'calculator':
-                        initCalculator(window);
-                        break;
-                    case 'browser':
-                        initBrowser(window);
-                        break;
-                    case 'camera':
-                        initCamera(window);
-                        break;
-                }
-            }
-
-            // Калькулятор
-            function initCalculator(calcWindow) {
-                const display = calcWindow.find('.calculator-display');
-                let currentValue = '0';
-                
-                calcWindow.find('.calculator-buttons').html(`
-                    <button class="calculator-btn" data-action="clear">C</button>
-                    <button class="calculator-btn" data-action="sign">±</button>
-                    <button class="calculator-btn" data-action="percent">%</button>
-                    <button class="calculator-btn" data-action="divide">/</button>
-                    <button class="calculator-btn" data-value="7">7</button>
-                    <button class="calculator-btn" data-value="8">8</button>
-                    <button class="calculator-btn" data-value="9">9</button>
-                    <button class="calculator-btn" data-action="multiply">×</button>
-                    <button class="calculator-btn" data-value="4">4</button>
-                    <button class="calculator-btn" data-value="5">5</button>
-                    <button class="calculator-btn" data-value="6">6</button>
-                    <button class="calculator-btn" data-action="subtract">-</button>
-                    <button class="calculator-btn" data-value="1">1</button>
-                    <button class="calculator-btn" data-value="2">2</button>
-                    <button class="calculator-btn" data-value="3">3</button>
-                    <button class="calculator-btn" data-action="add">+</button>
-                    <button class="calculator-btn" data-value="0" style="grid-column: span 2">0</button>
-                    <button class="calculator-btn" data-value=".">.</button>
-                    <button class="calculator-btn" data-action="equals">=</button>
-                `);
-
-                calcWindow.on('click', '.calculator-btn', function() {
-                    const action = $(this).data('action');
-                    const value = $(this).data('value');
-                    
-                    if(value) handleNumber(value);
-                    if(action) handleAction(action);
-                    
-                    display.text(currentValue);
-                });
-
-                function handleNumber(num) {
-                    if(currentValue === '0') currentValue = num;
-                    else currentValue += num;
-                }
-
-                function handleAction(action) {
-                    switch(action) {
-                        case 'clear':
-                            currentValue = '0';
-                            break;
-                        case 'equals':
-                            try {
-                                currentValue = eval(currentValue).toString();
-                            } catch {
-                                currentValue = 'Error';
-                            }
-                            break;
-                        // Добавьте другие операции
-                    }
-                }
-            }
-
-            // Браузер
-            function initBrowser(browserWindow) {
-                const iframe = browserWindow.find('iframe');
-                const urlInput = browserWindow.find('.browser-url');
-                
-                browserWindow.find('.go').click(() => {
-                    let url = urlInput.val();
-                    if(!url.startsWith('http')) url = 'https://' + url;
-                    iframe.attr('src', url);
-                });
-
-                browserWindow.find('.back').click(() => iframe[0].contentWindow.history.back());
-                browserWindow.find('.forward').click(() => iframe[0].contentWindow.history.forward());
-            }
-
-            // Камера
-            function initCamera(cameraWindow) {
-                const video = cameraWindow.find('video')[0];
-                const constraints = { video: true };
-
-                navigator.mediaDevices.getUserMedia(constraints)
-                    .then(stream => {
-                        video.srcObject = stream;
-                        video.play();
-                    })
-                    .catch(err => {
-                        cameraWindow.find('.window-content').html('Camera access denied!');
-                    });
-
-                cameraWindow.find('.capture-btn').click(() => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0);
-                    
-                    const img = new Image();
-                    img.src = canvas.toDataURL('image/png');
-                    img.style.maxWidth = '100%';
-                    
-                    const newWindow = $(`
-                        <div class="window" style="width: 400px; height: 300px;">
-                            <div class="window-header">Photo</div>
-                            <div class="window-content"></div>
-                        </div>
-                    `).appendTo('.desktop').draggable({
-                        handle: ".window-header",
-                        containment: "parent"
-                    });
-                    
-                    newWindow.find('.window-content').append(img);
-                });
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
