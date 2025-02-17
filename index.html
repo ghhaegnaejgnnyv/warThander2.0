@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,6 +46,10 @@
             gap: 5px;
         }
 
+        .start-button img {
+            width: 16px;
+        }
+
         .start-menu {
             display: none;
             position: absolute;
@@ -56,6 +60,19 @@
             color: white;
             padding: 10px;
             border-radius: 5px;
+        }
+
+        .quick-access {
+            display: flex;
+            gap: 5px;
+            margin-left: 20px;
+        }
+
+        .quick-access div {
+            background: gray;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
         }
 
         .shutdown {
@@ -73,38 +90,6 @@
             border: 1px solid #003c74;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-        }
-
-        .window-header {
-            background: linear-gradient(to bottom, #0078d7, #006cbd);
-            color: white;
-            padding: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 4px 4px 0 0;
-            cursor: move;
-        }
-
-        .window-controls button {
-            width: 16px;
-            height: 16px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .window-content {
-            padding: 10px;
-        }
-
-        .desktop-icon {
-            position: absolute;
-            width: 80px;
-            text-align: center;
-            padding: 5px;
-            color: white;
-            text-shadow: 1px 1px 2px black;
-            cursor: pointer;
         }
 
         .clock {
@@ -127,28 +112,15 @@
     </style>
 </head>
 <body>
-    <div class="desktop">
-        <div class="desktop-icon" style="left: 20px; top: 20px;">
-            <img src="computer.png" alt="Computer" width="48">
-            <div>Computer</div>
-        </div>
+    <div class="desktop"></div>
 
-        <div class="window" style="width: 400px; height: 300px; left: 100px; top: 100px;">
-            <div class="window-header">
-                <span>My Computer</span>
-                <div class="window-controls">
-                    <button class="minimize">-</button>
-                    <button class="maximize">□</button>
-                    <button class="close">X</button>
-                </div>
-            </div>
-            <div class="window-content"></div>
-        </div>
-
-        <div class="taskbar">
-            <button class="start-button">Start</button>
-            <div class="clock" id="clock"></div>
-        </div>
+    <div class="taskbar">
+        <button class="start-button">
+            <img src="windows-icon.png" alt="Start">
+            Start
+        </button>
+        <div class="quick-access"></div>
+        <div class="clock" id="clock"></div>
     </div>
     
     <div class="start-menu">
@@ -161,34 +133,16 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
         $(function() {
-            $(".window").draggable({ handle: ".window-header" });
-            $(".desktop-icon").draggable();
-            
-            $(".close").click(function() {
-                $(this).closest(".window").hide();
-            });
-            $(".minimize").click(function() {
-                $(this).closest(".window").hide();
-            });
-            $(".maximize").click(function() {
-                let win = $(this).closest(".window");
-                win.toggleClass("maximized");
-                if (win.hasClass("maximized")) {
-                    win.css({ top: 0, left: 0, width: "100vw", height: "100vh" });
-                } else {
-                    win.css({ width: "400px", height: "300px", left: "100px", top: "100px" });
-                }
-            });
-            
             function updateClock() {
                 const now = new Date();
-                $("#clock").text(now.toLocaleString());
+                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', locale: 'ru-RU' };
+                $("#clock").text(now.toLocaleDateString('ru-RU', options));
             }
             setInterval(updateClock, 1000);
             updateClock();
             
             $(".clock").click(function() {
-                $("#calendar").toggle().text(new Date().toDateString());
+                $("#calendar").toggle().text(new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
             });
             
             $(".start-button").click(function() {
